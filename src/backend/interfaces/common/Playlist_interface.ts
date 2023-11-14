@@ -1,8 +1,10 @@
 import { Music } from "./Music_interface.js";
 
 export interface Playlist {
+  id: string;
   name: string;
-  musics: Music[];
+  image: string;
+  musics?: Music[];
   author: string;
   amount_of_musics: number;
 }
