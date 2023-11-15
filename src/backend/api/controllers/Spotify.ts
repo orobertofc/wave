@@ -4,7 +4,7 @@ import { Response } from "express";
 import * as querystring from "querystring";
 import { Token_interface } from "../../interfaces/common/Token_interface.js";
 import { Library_interface } from "../../interfaces/common/Library_interface.js";
-// import { Filter } from "./filters/generic_filter.js";
+import { Filter } from "./filters/generic_filter.js";
 import { Playlist } from "../../interfaces/common/Playlist_interface.js";
 import { Music } from "../../interfaces/common/Music_interface.js";
 import axios, { Axios } from "axios";
@@ -14,7 +14,7 @@ export class Spotify implements Istreaming {
   private readonly client_secret: string;
   private readonly redirect_uri: string;
   private readonly scope: string;
-  // private filter: Filter;
+  private filter: Filter;
 
   constructor(
     client_id?: string,
@@ -160,7 +160,12 @@ export class Spotify implements Istreaming {
       throw new Error("Failed to get playlists");
     }
 
-    return this.filter_library(playlists.data.items);
+    // Lazy init
+    if (this.filter === undefined) {
+      this.filter = new Filter(this);
+    }
+
+    return this.filter.filter_playlists(playlists.data.items);
   }
 
   private async get_musics(
@@ -186,47 +191,11 @@ export class Spotify implements Istreaming {
       throw new Error("Failed to get musics");
     }
 
-    return this.filter_music(musics.data.items);
-  }
+    // Lazy init
+    if (this.filter === undefined) {
+      this.filter = new Filter(this);
+    }
 
-  //   FILTERS
-  private filter_library(items: any): Library_interface {
-    const library: Library_interface = [];
-
-    items.forEach((item: any) => {
-      try {
-        const playlist: Playlist = {
-          id: item.id,
-          name: item.name,
-          image:
-            item.images && item.images.length > 0
-              ? item.images[0].url
-              : "default_image_url",
-          author: item.owner.display_name,
-          amount_of_musics: item.tracks.total,
-        };
-        library.push(playlist);
-      } catch (error) {
-        console.error("Error processing playlist:", error);
-      }
-    });
-
-    return library;
-  }
-
-  private filter_music(items: any): Array<Music> {
-    const musics: Array<Music> = [];
-
-    items.forEach((item: any) => {
-      const music: Music = {
-        // Check if track is an episode (podcast) or music
-        name: item.episode ? item.episode.name : item.track.name,
-        author: item.track.artists[0].name,
-      };
-
-      musics.push(music);
-    });
-
-    return musics;
+    return this.filter.filter_music(musics.data.items);
   }
 }
