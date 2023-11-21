@@ -7,6 +7,7 @@ import {
   refresh_cookie_options,
 } from "../../utils/cookie_options.js";
 import axios from "axios";
+import { identify_service } from "../../utils/identify_service.js";
 
 //handles the logic for the given service. Just call this function with the service you want to handle
 export function callback_for(service: Istreaming): ExpressRouteFunc {
@@ -25,13 +26,23 @@ export function callback_for(service: Istreaming): ExpressRouteFunc {
         code,
         axios,
       );
+
+      const service_name = identify_service(service);
+
+      //Some services don't provide a refresh token
+      if (result.refresh_token) {
+        res.cookie(
+          `${service_name}_refresh_token`,
+          result.refresh_token,
+          refresh_cookie_options(),
+        );
+      }
       res
         .cookie(
-          "access_token",
+          `${service_name}_access_token`,
           result.access_token,
           access_cookie_options(result),
         )
-        .cookie("refresh_token", result.refresh_token, refresh_cookie_options())
         .status(200)
         .send("You can close this window");
 
