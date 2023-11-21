@@ -8,6 +8,7 @@ import { Filter } from "./filters/generic_filter.js";
 import { Playlist } from "../../interfaces/common/Playlist_interface.js";
 import { Music } from "../../interfaces/common/Music_interface.js";
 import axios, { Axios } from "axios";
+import "dotenv/config";
 
 export class Spotify implements Istreaming {
   private readonly client_id: string;
@@ -139,7 +140,6 @@ export class Spotify implements Istreaming {
   }
 
   // __________________IMPLEMENTATION-SPECIFIC METHODS__________________
-
   private async get_playlists(
     access_token: string,
     axios: Axios,
@@ -181,8 +181,6 @@ export class Spotify implements Istreaming {
         },
       },
     );
-
-    console.log(musics.data.items);
 
     if (musics.status === 401) {
       throw new Error("Token expired");
