@@ -106,10 +106,14 @@ export class Deezer implements Istreaming {
       `https://api.deezer.com/playlist/${playlist_id}/tracks&access_token=${access_token}`,
     );
 
-    if (musics.status === 401) {
+    // Deezer returns code 200 with an error message if the token is expired
+    // I want to die
+    const code = musics.data.error.code;
+
+    if (code === 401 || 300) {
       throw new Error("Token expired");
     }
-    if (musics.status !== 200) {
+    if (code !== 200) {
       throw new Error("Failed to get musics");
     }
 
@@ -129,8 +133,9 @@ export class Deezer implements Istreaming {
       `https://api.deezer.com/user/me/playlists&access_token=${access_token}`,
     );
 
-    if (playlists.data.error) {
-      throw new Error("Failed to get playlists");
+    // Deezer returns code 200 with an error message if the token is expired
+    if (playlists.data.error.code) {
+      throw new Error("Token expired");
     }
 
     if (this.filter === undefined) {
